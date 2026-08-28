@@ -1,0 +1,15 @@
+# 파이썬
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 편집기
+.vscode/
+.idea/
+
+# 로컬 설정
+.claude/
