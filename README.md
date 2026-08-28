@@ -60,14 +60,28 @@ immagic/
 
 ## 5. 배포
 
-정적 파일이라 어디에 올려도 됩니다.
+**현재 배포 주소: <https://brizymedia.github.io/immagic/>**
 
-- **GitHub Pages** — 저장소에 올리고 Settings → Pages → Branch 지정
+`main` 브랜치에 푸시하면 GitHub Pages 가 1~2분 안에 자동으로 반영합니다.
+
+```bash
+git add -A
+git commit -m "수정 내용"
+git push
+```
+
+다른 곳에 올리고 싶다면 정적 파일이라 어디든 됩니다.
+
+- **GitHub Pages** — 저장소 Settings → Pages → Branch: `main` / `(root)` (이미 설정됨)
 - **Netlify / Vercel** — 폴더를 그대로 드래그 앤 드롭
 - **기존 호스팅** — FTP 로 `immagic/` 안의 내용을 웹 루트에 업로드
 
-도메인을 `immagic.kr` 로 연결한 뒤에는 `sitemap.xml` 의 주소가 이미 맞춰져 있으니
-네이버 서치어드바이저와 구글 서치콘솔에 `https://immagic.kr/sitemap.xml` 을 제출하면 됩니다.
+### immagic.kr 도메인 연결
+
+1. 도메인 관리 페이지에서 CNAME 레코드를 `brizymedia.github.io` 로 지정 (또는 A 레코드를 GitHub Pages IP 4개로)
+2. 저장소 Settings → Pages → Custom domain 에 `immagic.kr` 입력 → Enforce HTTPS 체크
+3. `sitemap.xml` 의 주소가 이미 `https://immagic.kr/` 로 맞춰져 있으니,
+   네이버 서치어드바이저와 구글 서치콘솔에 `https://immagic.kr/sitemap.xml` 을 제출합니다.
 
 ## 6. 알아두면 좋은 것
 
