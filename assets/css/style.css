@@ -577,7 +577,8 @@ figure, figcaption, dl, dd, blockquote { margin: 0; }
   background-position: var(--pos, center);
   opacity: 0;
   transform: scale(1.14);
-  filter: saturate(.58) contrast(1.14) brightness(.48);
+  /* 사진마다 밝기가 달라 슬라이드별로 --bri 로 조절한다 */
+  filter: saturate(.58) contrast(1.14) brightness(var(--bri, .48));
   transition: opacity 2.4s var(--ease-io);
   will-change: opacity, transform;
 }
