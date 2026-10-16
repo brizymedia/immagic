@@ -80,8 +80,8 @@ git push
 
 1. 도메인 관리 페이지에서 CNAME 레코드를 `brizymedia.github.io` 로 지정 (또는 A 레코드를 GitHub Pages IP 4개로)
 2. 저장소 Settings → Pages → Custom domain 에 `immagic.kr` 입력 → Enforce HTTPS 체크
-3. `sitemap.xml` 의 주소가 이미 `https://immagic.kr/` 로 맞춰져 있으니,
-   네이버 서치어드바이저와 구글 서치콘솔에 `https://immagic.kr/sitemap.xml` 을 제출합니다.
+3. `sitemap.xml` 의 주소가 이미 `https://www.immagic.kr/` 로 맞춰져 있으니,
+   네이버 서치어드바이저와 구글 서치콘솔에 `https://www.immagic.kr/sitemap.xml` 을 제출합니다.
 
 ## 6. 알아두면 좋은 것
 
