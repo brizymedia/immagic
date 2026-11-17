@@ -1,0 +1,65 @@
+{
+ "updated": "",
+ "items": [
+  {
+   "f": "assets/img/hero-bubble.jpg",
+   "c": "야외 잔디밭에서 진행된 초대형 버블쇼",
+   "n": "야외 버블쇼"
+  },
+  {
+   "f": "assets/img/magic-fire.jpg",
+   "c": "무대 위 파이어 매니퓰레이션",
+   "n": "파이어 퍼포먼스"
+  },
+  {
+   "f": "assets/img/gal-sandshow.jpg",
+   "c": "공연장에서 진행된 샌드아트",
+   "n": "샌드아트"
+  },
+  {
+   "f": "assets/img/magic-kids.jpg",
+   "c": "유치원 방문공연, 객석을 가득 채운 아이들",
+   "n": "방문공연"
+  },
+  {
+   "f": "assets/img/stage-festival.jpg",
+   "c": "지역 축제 야외 특설무대",
+   "n": "축제 무대"
+  },
+  {
+   "f": "assets/img/laser-hall.jpg",
+   "c": "공연장 전체를 채운 레이저쇼",
+   "n": "레이저쇼"
+  },
+  {
+   "f": "assets/img/gal-illusion.jpg",
+   "c": "극장 무대 일루전 마술",
+   "n": "일루전"
+  },
+  {
+   "f": "assets/img/sand-artist.jpg",
+   "c": "라이브 샌드아트 드로잉",
+   "n": "라이브 드로잉"
+  },
+  {
+   "f": "assets/img/bubble-street.jpg",
+   "c": "거리 축제 버블 퍼포먼스",
+   "n": "거리 공연"
+  },
+  {
+   "f": "assets/img/event-bounce.jpg",
+   "c": "에어바운스 설치 운영",
+   "n": "에어바운스"
+  },
+  {
+   "f": "assets/img/event-sports.jpg",
+   "c": "체육관 명랑운동회 진행",
+   "n": "명랑운동회"
+  },
+  {
+   "f": "assets/img/sand-experience.jpg",
+   "c": "공연 후 이어지는 샌드아트 체험",
+   "n": "샌드아트 체험"
+  }
+ ]
+}
