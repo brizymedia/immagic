@@ -684,6 +684,49 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
 </button>
 
+<script>
+/* 「무대의 기록」 — photos 가지의 gallery/gallery.json 을 읽어 다시 그린다.
+   못 읽으면 아래 HTML 에 박혀 있는 칸이 그대로 남으므로 갤러리가 비지 않는다. */
+(function () {
+  var 목록주소 = 'https://raw.githubusercontent.com/brizymedia/immagic/photos/gallery/gallery.json';
+  var 사진바탕 = 'https://raw.githubusercontent.com/brizymedia/immagic/photos/';
+  var 통 = document.querySelector('.gal');
+  if (!통 || location.protocol.indexOf('http') !== 0) return;
+
+  function 안전(t) {
+    return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  /* assets/ 로 시작하면 홈페이지에 원래 있는 사진, 아니면 올린 사진 */
+  function 주소(f) {
+    return f.indexOf('assets/') === 0 ? f : 사진바탕 + f;
+  }
+
+  fetch(목록주소 + '?t=' + Math.floor(Date.now() / 300000), { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      var 칸 = (j && Array.isArray(j.items)) ? j.items.filter(function (x) { return x && x.f; }) : [];
+      if (!칸.length) return;                      // 비어 있으면 박혀 있는 것을 그대로 둔다
+      통.innerHTML = 칸.map(function (x) {
+        var u = 안전(주소(x.f));
+        var 설명 = 안전(x.c || x.n || '아이엠매직 공연 사진');
+        return '<figure class="gal__it unveil" data-lb="' + u + '" data-cap="' + 설명 + '">' +
+                 '<img src="' + u + '" alt="' + 설명 + '" loading="lazy">' +
+                 (x.n ? '<figcaption>' + 안전(x.n) + '</figcaption>' : '') +
+               '</figure>';
+      }).join('');
+      // 다음 그림틀에서 덮개를 걷어 원래 등장 효과를 그대로 준다
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          Array.prototype.forEach.call(통.children, function (el) { el.classList.add('is-in'); });
+          if (window.IM && window.IM.bindLightbox) window.IM.bindLightbox();
+        });
+      });
+    })
+    .catch(function () { /* 박혀 있는 칸을 그대로 둔다 */ });
+})();
+</script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>

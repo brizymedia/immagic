@@ -1,10 +1,11 @@
 /**
- * 아이엠매직 · 공연 소식 서버
+ * 아이엠매직 · 공연 소식 + 갤러리 서버
  * ────────────────────────────────────────────────────────────
- * 구글 앱스 스크립트로 도는 작은 서버입니다. 하는 일은 둘:
+ * 구글 앱스 스크립트로 도는 작은 서버입니다. 하는 일은 셋:
  *
  *   1. 관리자 화면이 보낸 사진(웹용 사본) → 홈페이지 저장소의 photos 가지
  *   2. 글 목록 → posts/posts.json 갱신 (공연 소식 페이지가 이걸 읽습니다)
+ *   3. 갤러리 목록 → gallery/gallery.json 갱신 (첫 화면 「무대의 기록」이 이걸 읽습니다)
  *
  * 설치 방법은 같은 폴더의 README.md 를 보세요.
  * 비밀번호·토큰은 이 파일에 적지 말고 「스크립트 속성」에 넣습니다.
@@ -30,6 +31,10 @@ const 저장경로 = 'posts';             // 그 가지 안에서 쌓이는 폴�
 const 글파일   = 저장경로 + '/posts.json';
 const 최대글수 = 120;                 // 이보다 오래된 글은 목록에서 빠진다
 
+const 갤러리경로 = 'gallery';          // 「무대의 기록」 사진이 쌓이는 폴더
+const 갤러리파일 = 갤러리경로 + '/gallery.json';
+const 최대칸수   = 40;                 // 갤러리에 둘 수 있는 사진 수
+
 /* ══════════════════════════════════════════════════════════════
    0. 권한 받기
 
@@ -50,7 +55,8 @@ function 점검() {
     Logger.log(k + ': ' + (속성.getProperty(k) ? '있음' : '── 없음 ──'));
   });
   try {
-    Logger.log('photos 가지 연결 정상 — 글 ' + 글읽기().posts.length + '개');
+    Logger.log('photos 가지 연결 정상 — 글 ' + 글읽기().posts.length +
+               '개, 갤러리 ' + 갤러리읽기().items.length + '칸');
   } catch (err) {
     Logger.log('photos 가지를 읽지 못했습니다: ' + err.message);
   }
@@ -82,6 +88,10 @@ function doPost(e) {
     if (요청.action === 'photo')  return 응답(사진저장(요청));
     if (요청.action === 'save')   return 응답(잠그고(function () { return 글저장(요청); }));
     if (요청.action === 'delete') return 응답(잠그고(function () { return 글삭제(요청); }));
+
+    if (요청.action === 'gal-list')  return 응답({ ok: true, items: 갤러리읽기().items });
+    if (요청.action === 'gal-photo') return 응답(갤러리사진저장(요청));
+    if (요청.action === 'gal-save')  return 응답(잠그고(function () { return 갤러리저장(요청); }));
 
     return 응답({ ok: false, error: '알 수 없는 요청입니다: ' + 요청.action });
 
@@ -267,4 +277,84 @@ function 응답(값) {
   return ContentService
     .createTextOutput(JSON.stringify(값))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7. 「무대의 기록」 갤러리
+
+   photos 가지의 gallery/gallery.json 에 칸 목록을 둔다.
+   칸 하나 = { f: 사진경로, c: 설명, n: 이름 }
+
+   사진경로는 두 가지다.
+     · 'assets/...'  → 홈페이지에 원래 들어 있는 사진 (손대지 않는다)
+     · 'gallery/...' → 관리자 화면에서 올린 사진 (photos 가지에 있다)
+
+   요청: {action:'gal-list'}
+         {action:'gal-photo', index, image}
+         {action:'gal-save', items:[...]}
+══════════════════════════════════════════════════════════════ */
+function 갤러리읽기() {
+  const 응 = 깃허브(갤러리파일, 'get');
+  if (응.getResponseCode() === 404) return { updated: '', items: [] };
+  try {
+    const 내용 = JSON.parse(응.getContentText());
+    const 값 = JSON.parse(Utilities.newBlob(Utilities.base64Decode(내용.content)).getDataAsString());
+    return { updated: 값.updated || '', items: Array.isArray(값.items) ? 값.items : [] };
+  } catch (err) {
+    // 빈 목록을 돌려주면 갤러리가 통째로 날아간다. 차라리 멈춘다.
+    throw new Error('gallery.json 을 읽지 못했습니다: ' + err.message);
+  }
+}
+
+function 갤러리쓰기(목록, 메모) {
+  목록.updated = new Date().toISOString();
+  목록.items = 목록.items.slice(0, 최대칸수);
+  const 본문 = Utilities.base64Encode(
+    Utilities.newBlob(JSON.stringify(목록, null, 1)).getBytes()
+  );
+  return 깃허브에올리기(갤러리파일, 본문, 메모);
+}
+
+function 갤러리사진저장(요청) {
+  if (!요청.image) return { ok: false, error: '사진이 비어 있습니다.' };
+  // 시각 + 번호로 이름을 지어 절대 겹치지 않게 한다
+  const 이름 = 'g' + Date.now().toString(36) + '-' + ('00' + (Number(요청.index) + 1)).slice(-3);
+  const 경로 = 갤러리경로 + '/' + 이름 + '.jpg';
+
+  const 결과 = 깃허브에올리기(경로, 요청.image, '갤러리 사진: ' + 이름 + '.jpg');
+  if (!결과.ok) return 결과;
+
+  return { ok: true, path: 경로 };
+}
+
+function 갤러리저장(요청) {
+  const 들어온것 = Array.isArray(요청.items) ? 요청.items : [];
+  if (!들어온것.length) return { ok: false, error: '갤러리를 모두 비울 수는 없습니다. 한 칸은 남겨 주세요.' };
+
+  const 새목록 = [];
+  들어온것.slice(0, 최대칸수).forEach(function (x) {
+    const f = 글자(x && x.f, 200);
+    // 홈페이지에 원래 있는 사진이거나, 우리가 올린 갤러리 사진만 받는다
+    if (!f) return;
+    if (f.indexOf('assets/') !== 0 && f.indexOf(갤러리경로 + '/') !== 0) return;
+    새목록.push({ f: f, c: 글자(x && x.c, 160), n: 글자(x && x.n, 40) });
+  });
+  if (!새목록.length) return { ok: false, error: '쓸 수 있는 사진이 없습니다.' };
+
+  const 지금 = 갤러리읽기();
+  const 남는것 = {};
+  새목록.forEach(function (x) { 남는것[x.f] = true; });
+
+  const 결과 = 갤러리쓰기({ items: 새목록 }, '갤러리 갱신 (' + 새목록.length + '칸)');
+  if (!결과.ok) return 결과;
+
+  // 목록에서 빠진 「우리가 올린」 사진은 파일도 치운다 (assets 는 건드리지 않는다)
+  지금.items.forEach(function (x) {
+    const f = x && x.f;
+    if (!f || 남는것[f]) return;
+    if (f.indexOf(갤러리경로 + '/') !== 0) return;
+    try { 깃허브에서지우기(f); } catch (err) { /* 무시 */ }
+  });
+
+  return { ok: true, items: 새목록 };
 }

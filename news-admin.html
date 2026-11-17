@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>공연 소식 관리 — 아이엠매직</title>
-<meta name="description" content="아이엠매직 공연 소식 관리 화면">
+<title>홈페이지 관리 — 아이엠매직</title>
+<meta name="description" content="아이엠매직 홈페이지 관리 화면">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#08070a">
 <link rel="icon" href="assets/img/logo-mark.png">
@@ -34,9 +34,10 @@
   <div class="wrap adm">
 
     <p class="eyebrow">Admin</p>
-    <h1 class="stitle" style="margin-top:18px">공연 소식 관리</h1>
+    <h1 class="stitle" style="margin-top:18px">홈페이지 관리</h1>
     <p class="slead" style="margin-top:18px">
-      여기에 글을 쓰면 홈페이지 <a href="news.html" style="color:var(--flame)">공연 소식</a> 에 올라갑니다.
+      <a href="news.html" style="color:var(--flame)">공연 소식</a> 글과
+      첫 화면 <a href="index.html#gal-h" style="color:var(--flame)">무대의 기록</a> 사진을 여기서 고칩니다.
       사진은 긴 변 1600px 으로 줄여서 올라가고, 원본은 올라가지 않습니다.
     </p>
 
@@ -65,9 +66,16 @@
       <p class="adm__msg" id="lmsg" role="status"></p>
     </form>
 
-    <!-- 글쓰기 -->
+    <!-- 관리 화면 -->
     <div id="panel" hidden>
-      <form class="adm__box form" id="pf" style="margin-top:30px">
+
+      <div class="adm__tabs" role="tablist">
+        <button class="adm__tab is-on" type="button" role="tab" data-tab="news" aria-selected="true">공연 소식</button>
+        <button class="adm__tab" type="button" role="tab" data-tab="gal" aria-selected="false">무대의 기록 (갤러리)</button>
+      </div>
+
+      <section id="tab-news">
+      <form class="adm__box form" id="pf" style="margin-top:24px">
         <input type="hidden" id="pid">
         <div class="frow frow--2">
           <div class="field">
@@ -104,6 +112,33 @@
 
       <h2 class="stitle" style="font-size:clamp(22px,2.4vw,30px);margin-top:clamp(40px,5vw,64px)">올린 소식</h2>
       <div id="list" style="margin-top:12px"></div>
+      </section>
+
+      <section id="tab-gal" hidden>
+        <div class="adm__box" style="margin-top:24px">
+          <p class="adm__msg" style="margin-top:0">
+            첫 화면 「무대의 기록」에 걸리는 사진입니다.
+            <b style="color:var(--cream);font-weight:500">맨 앞 사진과 여덟 번째 사진이 크게 걸립니다.</b>
+            화살표로 순서를 옮기고, 「저장하기」를 눌러야 홈페이지에 반영됩니다.
+          </p>
+          <input class="adm__file" id="gfile" type="file" accept="image/*" multiple>
+          <label class="adm__pick" for="gfile" style="margin-top:16px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m3 17 5-4 4 3 3-2 6 5"/></svg>
+            사진 더하기 <small>여러 장 한꺼번에 고를 수 있습니다</small>
+          </label>
+
+          <div class="adm__bar" id="gbar" hidden><i></i></div>
+
+          <div id="glist" style="margin-top:22px"></div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:22px">
+            <button class="btn btn--flame" type="button" id="gsave">저장하기</button>
+            <button class="btn btn--ghost" type="button" id="greload">되돌리기</button>
+          </div>
+          <p class="adm__msg" id="gmsg" role="status"></p>
+        </div>
+      </section>
+
     </div>
 
   </div>
@@ -324,6 +359,131 @@
         $('save').disabled = false;
         setTimeout(function () { 막대.hidden = true; }, 1200);
       });
+  });
+
+  /* ══════════════════════════════════════════════════
+     무대의 기록 (갤러리)
+  ══════════════════════════════════════════════════ */
+  var 칸들 = [];          // [{f, c, n}] — f 가 'assets/' 로 시작하면 홈페이지 원래 사진
+  var 갤러리바탕 = 'https://raw.githubusercontent.com/brizymedia/immagic/photos/';
+
+  function 칸주소(f) { return f.indexOf('assets/') === 0 ? f : 갤러리바탕 + f; }
+
+  function 갤러리그리기() {
+    $('glist').innerHTML = 칸들.length ? 칸들.map(function (x, i) {
+      var 큰칸 = (i === 0 || i === 7) ? '<span class="adm__big">크게 걸림</span>' : '';
+      return '<div class="adm__gitem">' +
+               '<figure><img src="' + 안전(칸주소(x.f)) + '" alt="">' + 큰칸 + '</figure>' +
+               '<div class="adm__gfields">' +
+                 '<label>이름 <small>사진 위에 뜨는 짧은 말</small>' +
+                   '<input type="text" maxlength="40" data-n="' + i + '" value="' + 안전(x.n || '') + '"></label>' +
+                 '<label>설명 <small>크게 볼 때 아래에 뜨는 말</small>' +
+                   '<input type="text" maxlength="160" data-c="' + i + '" value="' + 안전(x.c || '') + '"></label>' +
+               '</div>' +
+               '<div class="adm__gbtns">' +
+                 '<button class="btn btn--ghost btn--sm" type="button" data-up="' + i + '" aria-label="앞으로"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+                 '<button class="btn btn--ghost btn--sm" type="button" data-down="' + i + '" aria-label="뒤로"' + (i === 칸들.length - 1 ? ' disabled' : '') + '>▼</button>' +
+                 '<button class="btn btn--ghost btn--sm" type="button" data-rm="' + i + '">빼기</button>' +
+               '</div>' +
+             '</div>';
+    }).join('') : '<p class="adm__msg">갤러리가 비었습니다. 사진을 더해 주세요.</p>';
+  }
+
+  function 갤러리불러오기(말) {
+    알림('gmsg', 말 || '불러오는 중…');
+    return 부르기({ action: 'gal-list' })
+      .then(function (j) {
+        if (!j || !j.ok) throw new Error((j && j.error) || '불러오지 못했습니다.');
+        칸들 = j.items || [];
+        갤러리그리기();
+        알림('gmsg', '사진 ' + 칸들.length + '칸입니다.');
+      })
+      .catch(function (err) { 알림('gmsg', err.message, 'bad'); });
+  }
+
+  $('glist').addEventListener('input', function (e) {
+    var el = e.target;
+    if (el.hasAttribute('data-n')) 칸들[+el.getAttribute('data-n')].n = el.value;
+    if (el.hasAttribute('data-c')) 칸들[+el.getAttribute('data-c')].c = el.value;
+  });
+
+  $('glist').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    function 자리(이름) { return b.hasAttribute(이름) ? +b.getAttribute(이름) : -1; }
+    var i;
+    if ((i = 자리('data-up'))   >= 0 && i > 0)              { 칸들.splice(i - 1, 0, 칸들.splice(i, 1)[0]); 갤러리그리기(); }
+    if ((i = 자리('data-down')) >= 0 && i < 칸들.length - 1) { 칸들.splice(i + 1, 0, 칸들.splice(i, 1)[0]); 갤러리그리기(); }
+    if ((i = 자리('data-rm'))   >= 0) {
+      if (!confirm('이 사진을 갤러리에서 뺄까요?\n(「저장하기」를 눌러야 실제로 빠집니다)')) return;
+      칸들.splice(i, 1); 갤러리그리기();
+      알림('gmsg', '뺐습니다. 「저장하기」를 눌러야 홈페이지에 반영됩니다.');
+    }
+  });
+
+  $('gfile').addEventListener('change', function (e) {
+    var 파일들 = Array.prototype.slice.call(e.target.files || []);
+    e.target.value = '';
+    if (!파일들.length) return;
+    if (칸들.length + 파일들.length > 40) {
+      알림('gmsg', '갤러리는 40칸까지입니다.', 'bad'); return;
+    }
+    var 막대 = $('gbar'), 칸 = 막대.firstElementChild;
+    막대.hidden = false; 칸.style.width = '0%';
+
+    var 차례 = Promise.resolve();
+    파일들.forEach(function (파일, i) {
+      차례 = 차례.then(function () {
+        알림('gmsg', '사진 올리는 중… (' + (i + 1) + '/' + 파일들.length + ')');
+        return 줄이기(파일).then(function (p) {
+          return 부르기({ action: 'gal-photo', index: i, image: p.data }).then(function (j) {
+            if (!j || !j.ok) throw new Error((j && j.error) || '사진을 올리지 못했습니다.');
+            칸들.push({ f: j.path, c: '', n: '' });
+            갤러리그리기();
+            칸.style.width = Math.round(((i + 1) / 파일들.length) * 100) + '%';
+          });
+        });
+      });
+    });
+
+    차례
+      .then(function () { 알림('gmsg', '더했습니다. 이름·설명을 적고 「저장하기」를 눌러 주세요.', 'good'); })
+      .catch(function (err) { 알림('gmsg', err.message, 'bad'); })
+      .then(function () { setTimeout(function () { 막대.hidden = true; }, 1200); });
+  });
+
+  $('gsave').addEventListener('click', function () {
+    if (!칸들.length) { 알림('gmsg', '사진이 한 장도 없습니다.', 'bad'); return; }
+    $('gsave').disabled = true;
+    알림('gmsg', '저장하는 중…');
+    부르기({ action: 'gal-save', items: 칸들 })
+      .then(function (j) {
+        if (!j || !j.ok) throw new Error((j && j.error) || '저장하지 못했습니다.');
+        칸들 = j.items || [];
+        갤러리그리기();
+        알림('gmsg', '저장했습니다. 홈페이지에는 늦어도 5분 안에 보입니다.', 'good');
+      })
+      .catch(function (err) { 알림('gmsg', err.message, 'bad'); })
+      .then(function () { $('gsave').disabled = false; });
+  });
+
+  $('greload').addEventListener('click', function () {
+    if (!confirm('고친 것을 버리고 저장된 상태로 되돌릴까요?')) return;
+    갤러리불러오기('되돌리는 중…');
+  });
+
+  /* ── 탭 ── */
+  Array.prototype.forEach.call(document.querySelectorAll('.adm__tab'), function (t) {
+    t.addEventListener('click', function () {
+      var 어느 = t.getAttribute('data-tab');
+      Array.prototype.forEach.call(document.querySelectorAll('.adm__tab'), function (x) {
+        var 켬 = x === t;
+        x.classList.toggle('is-on', 켬);
+        x.setAttribute('aria-selected', 켬 ? 'true' : 'false');
+      });
+      $('tab-news').hidden = 어느 !== 'news';
+      $('tab-gal').hidden  = 어느 !== 'gal';
+      if (어느 === 'gal' && !칸들.length) 갤러리불러오기();
+    });
   });
 
   /* ── 열기 ── */

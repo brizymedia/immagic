@@ -2010,6 +2010,99 @@ figure, figcaption, dl, dd, blockquote { margin: 0; }
   transition: width .35s var(--ease);
 }
 
+/* 관리자 탭 */
+.adm__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 30px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.adm__tab {
+  padding: 11px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--fg-mute);
+  cursor: pointer;
+  transition: border-color .3s, color .3s, background-color .3s;
+}
+.adm__tab:hover { color: var(--cream); border-color: var(--line-flame); }
+.adm__tab.is-on {
+  background: var(--flame);
+  border-color: var(--flame);
+  color: #fff;
+}
+
+/* 갤러리 한 칸 고치기 */
+.adm__gitem {
+  display: grid;
+  grid-template-columns: 136px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.adm__gitem figure {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0a090c;
+  border: 1px solid var(--line-soft);
+}
+.adm__gitem figure img { width: 100%; height: 100%; object-fit: cover; }
+.adm__big {
+  position: absolute;
+  left: 6px; bottom: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--flame);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.adm__gfields { display: grid; gap: 10px; min-width: 0; }
+.adm__gfields label {
+  display: grid;
+  gap: 5px;
+  font-size: 12.5px;
+  letter-spacing: .03em;
+  color: var(--fg-mute);
+}
+.adm__gfields small { font-weight: 300; font-size: 11.5px; color: var(--fg-faint); }
+.adm__gfields input {
+  width: 100%;
+  padding: 11px 13px;
+  background: rgba(255, 255, 255, .025);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--fg);
+  transition: border-color .3s, background-color .3s;
+}
+.adm__gfields input:focus {
+  outline: 0;
+  border-color: var(--line-flame);
+  background: rgba(255, 105, 59, .045);
+}
+
+.adm__gbtns { display: flex; flex-direction: column; gap: 6px; }
+.adm__gbtns .btn { --bh: 34px; padding-inline: 14px; font-size: 12.5px; }
+.adm__gbtns .btn[disabled] { opacity: .3; pointer-events: none; }
+
+@media (max-width: 680px) {
+  .adm__gitem { grid-template-columns: 96px 1fr; }
+  .adm__gbtns { grid-column: 1 / -1; flex-direction: row; }
+  .adm__gbtns .btn { flex: 1; }
+}
+
 /* 바닥글 관리자 들어가기 */
 .ftr__admin { padding-top: 16px; text-align: center; }
 .ftr__admin a {
