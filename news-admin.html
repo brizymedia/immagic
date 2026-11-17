@@ -486,21 +486,39 @@
     });
   });
 
-  /* ── 열기 ── */
+  /* ── 열기 ──
+     서버가 비밀번호를 확인해 준 뒤에만 관리 화면을 연다.
+     (앱스 스크립트는 답이 5~8초 걸려서, 먼저 열어 두면 그 사이 화면이 보인다) */
+  var 확인중 = false;
+
   function 열기() {
-    $('login').hidden = true; $('panel').hidden = false; 비우기();
+    if (확인중) return;
+    확인중 = true;
+    var 단추 = $('login').querySelector('button[type=submit]');
+    if (단추) 단추.disabled = true;
+    알림('lmsg', '확인하는 중…');
+
     부르기({ action: 'list' })
       .then(function (j) {
-        if (j && j.ok) { 글들 = j.posts || []; 목록그리기(); }
-        else {
-          $('login').hidden = false; $('panel').hidden = true;
-          알림('lmsg', (j && j.error) || '열 수 없습니다.', 'bad');
+        if (j && j.ok) {
+          글들 = j.posts || [];
+          $('login').hidden = true;
+          $('panel').hidden = false;
+          비우기();
+          목록그리기();
+          알림('lmsg', '');
+        } else {
+          비번 = '';
           try { sessionStorage.removeItem(비번열쇠); } catch (e) {}
+          알림('lmsg', (j && j.error) || '열 수 없습니다.', 'bad');
         }
       })
       .catch(function () {
-        $('login').hidden = false; $('panel').hidden = true;
         알림('lmsg', '서버에 연결하지 못했습니다.', 'bad');
+      })
+      .then(function () {
+        확인중 = false;
+        if (단추) 단추.disabled = false;
       });
   }
 
@@ -509,7 +527,6 @@
     비번 = $('pw').value;
     if (!비번) return;
     try { sessionStorage.setItem(비번열쇠, 비번); } catch (x) {}
-    알림('lmsg', '확인하는 중…');
     열기();
   });
 
