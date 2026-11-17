@@ -262,26 +262,45 @@
   })();
 
   /* --------------------------------------------------- 갤러리 라이트박스 */
+  /* 클릭을 문서에 위임한다 — 공연 소식처럼 나중에 그려지는 사진에도 그대로 걸린다. */
   (function lightbox() {
-    var items = $$('[data-lb]');
-    if (!items.length) return;
+    var box = null, img = null, cap = null, at = 0, opener = null, items = [];
 
-    var box = document.createElement('div');
-    box.className = 'lbox';
-    box.setAttribute('role', 'dialog');
-    box.setAttribute('aria-modal', 'true');
-    box.setAttribute('aria-label', '사진 크게 보기');
-    box.innerHTML =
-      '<button class="lbox__x" type="button" aria-label="닫기">&#10005;</button>' +
-      '<button class="lbox__nav lbox__nav--p" type="button" aria-label="이전">&#10094;</button>' +
-      '<button class="lbox__nav lbox__nav--n" type="button" aria-label="다음">&#10095;</button>' +
-      '<img alt="">' +
-      '<p class="lbox__cap"></p>';
-    document.body.appendChild(box);
+    function 목록() { return $$('[data-lb]'); }
 
-    var img = $('img', box), cap = $('.lbox__cap', box), at = 0, opener = null;
+    function 꾸미기() {
+      목록().forEach(function (el) {
+        if (el.getAttribute('role') === 'button') return;
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'button');
+      });
+    }
+
+    function 만들기() {
+      box = document.createElement('div');
+      box.className = 'lbox';
+      box.setAttribute('role', 'dialog');
+      box.setAttribute('aria-modal', 'true');
+      box.setAttribute('aria-label', '사진 크게 보기');
+      box.innerHTML =
+        '<button class="lbox__x" type="button" aria-label="닫기">&#10005;</button>' +
+        '<button class="lbox__nav lbox__nav--p" type="button" aria-label="이전">&#10094;</button>' +
+        '<button class="lbox__nav lbox__nav--n" type="button" aria-label="다음">&#10095;</button>' +
+        '<img alt="">' +
+        '<p class="lbox__cap"></p>';
+      document.body.appendChild(box);
+      img = $('img', box);
+      cap = $('.lbox__cap', box);
+
+      $('.lbox__x', box).addEventListener('click', close);
+      $('.lbox__nav--p', box).addEventListener('click', function (e) { e.stopPropagation(); open(at - 1); });
+      $('.lbox__nav--n', box).addEventListener('click', function (e) { e.stopPropagation(); open(at + 1); });
+      box.addEventListener('click', function (e) { if (e.target === box) close(); });
+    }
 
     function open(n) {
+      if (!items.length) return;
+      if (!box) 만들기();
       at = (n + items.length) % items.length;
       var src = items[at].getAttribute('data-lb');
       var txt = items[at].getAttribute('data-cap') || '';
@@ -291,32 +310,44 @@
       box.classList.add('is-on');
       document.body.classList.add('no-scroll');
     }
+
     function close() {
+      if (!box) return;
       box.classList.remove('is-on');
       document.body.classList.remove('no-scroll');
       if (opener) opener.focus();
     }
 
-    items.forEach(function (el, k) {
-      el.setAttribute('tabindex', '0');
-      el.setAttribute('role', 'button');
-      el.addEventListener('click', function () { opener = el; open(k); });
-      el.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opener = el; open(k); }
-      });
-    });
+    function 열기(el) {
+      items = 목록();
+      var i = items.indexOf(el);
+      if (i < 0) return;
+      opener = el;
+      open(i);
+    }
 
-    $('.lbox__x', box).addEventListener('click', close);
-    $('.lbox__nav--p', box).addEventListener('click', function (e) { e.stopPropagation(); open(at - 1); });
-    $('.lbox__nav--n', box).addEventListener('click', function (e) { e.stopPropagation(); open(at + 1); });
-    box.addEventListener('click', function (e) { if (e.target === box) close(); });
+    document.addEventListener('click', function (e) {
+      var el = e.target && e.target.closest ? e.target.closest('[data-lb]') : null;
+      if (el) 열기(el);
+    });
 
     document.addEventListener('keydown', function (e) {
-      if (!box.classList.contains('is-on')) return;
-      if (e.key === 'Escape') close();
-      if (e.key === 'ArrowLeft')  open(at - 1);
-      if (e.key === 'ArrowRight') open(at + 1);
+      if (box && box.classList.contains('is-on')) {
+        if (e.key === 'Escape')     close();
+        if (e.key === 'ArrowLeft')  open(at - 1);
+        if (e.key === 'ArrowRight') open(at + 1);
+        return;
+      }
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var el = document.activeElement && document.activeElement.closest
+             ? document.activeElement.closest('[data-lb]') : null;
+      if (el) { e.preventDefault(); 열기(el); }
     });
+
+    꾸미기();
+    // 공연 소식처럼 나중에 사진을 그리는 쪽에서 불러 준다 (키보드로도 열리게)
+    window.IM = window.IM || {};
+    window.IM.bindLightbox = 꾸미기;
   })();
 
   /* --------------------------------------------------- 카테고리 필터 */

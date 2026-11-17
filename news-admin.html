@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>공연 소식 관리 — 아이엠매직</title>
+<meta name="description" content="아이엠매직 공연 소식 관리 화면">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#08070a">
+<link rel="icon" href="assets/img/logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Hahmlet:wght@300;500;700;900&family=IBM+Plex+Sans+KR:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+<a class="skip" href="#main">본문 바로가기</a>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="hdr is-stuck">
+  <div class="hdr__in">
+    <a class="brand" href="index.html" aria-label="아이엠매직 홈">
+      <img src="assets/img/logo-full.png" alt="아이엠매직 I.M.MAGIC">
+    </a>
+    <div class="hdr__cta">
+      <a class="btn btn--ghost btn--sm" href="news.html">소식 페이지 보기</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<section class="section" style="padding-top:clamp(110px,13vw,150px)">
+  <div class="wrap adm">
+
+    <p class="eyebrow">Admin</p>
+    <h1 class="stitle" style="margin-top:18px">공연 소식 관리</h1>
+    <p class="slead" style="margin-top:18px">
+      여기에 글을 쓰면 홈페이지 <a href="news.html" style="color:var(--flame)">공연 소식</a> 에 올라갑니다.
+      사진은 긴 변 1600px 으로 줄여서 올라가고, 원본은 올라가지 않습니다.
+    </p>
+
+    <!-- 서버 주소가 아직 없을 때 -->
+    <div class="adm__box" id="setup" hidden style="margin-top:30px">
+      <h2 style="font-family:var(--f-kr);font-weight:700;font-size:20px;color:var(--cream)">아직 소식 서버가 연결되지 않았습니다</h2>
+      <p class="adm__msg">
+        큰길브리지가 서버를 배포하고 주소를 넣으면 이 화면이 열립니다.<br>
+        설치 안내는 저장소의 <code>apps-script/posts/README.md</code> 에 있습니다.
+        먼저 설치하셨다면 아래에 <code>/exec</code> 주소를 붙여넣어 주세요. (이 브라우저에만 기억됩니다)
+      </p>
+      <div class="field" style="margin-top:18px">
+        <label for="srv">서버 주소</label>
+        <input id="srv" type="url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
+      </div>
+      <div style="margin-top:14px"><button class="btn btn--flame btn--sm" type="button" id="srv-save">주소 저장</button></div>
+    </div>
+
+    <!-- 비밀번호 -->
+    <form class="adm__box" id="login" hidden style="margin-top:30px;max-width:430px">
+      <div class="field">
+        <label for="pw">비밀번호</label>
+        <input id="pw" type="password" autocomplete="current-password">
+      </div>
+      <div style="margin-top:16px"><button class="btn btn--flame" type="submit">들어가기</button></div>
+      <p class="adm__msg" id="lmsg" role="status"></p>
+    </form>
+
+    <!-- 글쓰기 -->
+    <div id="panel" hidden>
+      <form class="adm__box form" id="pf" style="margin-top:30px">
+        <input type="hidden" id="pid">
+        <div class="frow frow--2">
+          <div class="field">
+            <label for="pd">날짜</label>
+            <input id="pd" type="text" placeholder="2026.11.17" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="pfile">사진</label>
+            <input class="adm__file" id="pfile" type="file" accept="image/*" multiple>
+            <label class="adm__pick" for="pfile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m3 17 5-4 4 3 3-2 6 5"/></svg>
+              사진 고르기 <small>여러 장 한꺼번에 고를 수 있습니다</small>
+            </label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="pt">제목 <b>*</b></label>
+          <input id="pt" type="text" maxlength="120" placeholder="예) 춘천 ○○초등학교 찾아가는 매직쇼">
+        </div>
+        <div class="field">
+          <label for="pb">내용</label>
+          <textarea id="pb" rows="7" maxlength="4000" placeholder="공연 이야기를 편하게 적어 주세요. 줄을 바꾸면 그대로 보입니다."></textarea>
+        </div>
+
+        <div class="adm__thumbs" id="thumbs"></div>
+        <div class="adm__bar" id="bar" hidden><i></i></div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:20px">
+          <button class="btn btn--flame" type="submit" id="save">올리기</button>
+          <button class="btn btn--ghost" type="button" id="reset">새로 쓰기</button>
+        </div>
+        <p class="adm__msg" id="pmsg" role="status"></p>
+      </form>
+
+      <h2 class="stitle" style="font-size:clamp(22px,2.4vw,30px);margin-top:clamp(40px,5vw,64px)">올린 소식</h2>
+      <div id="list" style="margin-top:12px"></div>
+    </div>
+
+  </div>
+</section>
+</main>
+
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr__bot" style="border-top:0">
+      <p><b>I.M.MAGIC (아이엠매직)</b> &nbsp;·&nbsp; 관리자 화면</p>
+      <p><a href="index.html">홈페이지로</a></p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* 배포 뒤 큰길브리지가 이 한 줄에 /exec 주소를 넣는다.
+     비워 두면 화면에서 직접 넣을 수 있다(그 브라우저에만 기억). */
+  var 서버기본 = '';
+
+  var 서버열쇠 = 'immagic.posts.server';
+  var 비번열쇠 = 'immagic.posts.pw';
+  var $ = function (i) { return document.getElementById(i); };
+
+  var 서버 = 서버기본;
+  try { 서버 = 서버기본 || localStorage.getItem(서버열쇠) || ''; } catch (e) {}
+  var 비번 = '';
+  try { 비번 = sessionStorage.getItem(비번열쇠) || ''; } catch (e) {}
+
+  var 글들 = [];      // 서버에 저장된 글 목록
+  var 사진들 = [];    // 지금 글에 붙일 사진 [{name, data(base64), url(미리보기)}]
+
+  function 안전(t) {
+    return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function 알림(칸, 글, 톤) {
+    var el = $(칸);
+    el.textContent = 글;
+    if (톤) el.setAttribute('data-tone', 톤); else el.removeAttribute('data-tone');
+  }
+  function 오늘() {
+    var d = new Date();
+    return d.getFullYear() + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + '.' + ('0' + d.getDate()).slice(-2);
+  }
+
+  function 부르기(몸) {
+    몸.pw = 비번;
+    return fetch(서버, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // 사전 요청이 없게 text/plain
+      body: JSON.stringify(몸)
+    }).then(function (r) { return r.json(); });
+  }
+
+  /* ── 사진 줄이기 : 긴 변 1600px, JPEG ── */
+  function 줄이기(파일) {
+    return new Promise(function (성공, 실패) {
+      var fr = new FileReader();
+      fr.onerror = function () { 실패(new Error('사진을 읽지 못했습니다')); };
+      fr.onload = function () {
+        var im = new Image();
+        im.onerror = function () { 실패(new Error('사진 형식을 알 수 없습니다')); };
+        im.onload = function () {
+          var 긴변 = 1600;
+          var w = im.width, h = im.height;
+          if (Math.max(w, h) > 긴변) {
+            var 비율 = 긴변 / Math.max(w, h);
+            w = Math.round(w * 비율); h = Math.round(h * 비율);
+          }
+          var cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(im, 0, 0, w, h);
+          var url = cv.toDataURL('image/jpeg', 0.82);
+          성공({ name: 파일.name, url: url, data: url.split(',')[1] });
+        };
+        im.src = fr.result;
+      };
+      fr.readAsDataURL(파일);
+    });
+  }
+
+  function 사진그리기() {
+    $('thumbs').innerHTML = 사진들.map(function (p, i) {
+      return '<figure><img src="' + p.url + '" alt="' + 안전(p.name) + '">' +
+             '<button type="button" data-del="' + i + '" aria-label="이 사진 빼기">&#10005;</button></figure>';
+    }).join('');
+  }
+
+  $('pfile').addEventListener('change', function (e) {
+    var 파일들 = Array.prototype.slice.call(e.target.files || []);
+    if (!파일들.length) return;
+    if (사진들.length + 파일들.length > 20) {
+      알림('pmsg', '사진은 한 글에 20장까지 올릴 수 있습니다.', 'bad');
+      파일들 = 파일들.slice(0, 20 - 사진들.length);
+    }
+    알림('pmsg', '사진을 줄이는 중입니다…');
+    Promise.all(파일들.map(줄이기))
+      .then(function (목록) {
+        사진들 = 사진들.concat(목록);
+        사진그리기();
+        알림('pmsg', '사진 ' + 사진들.length + '장 준비됐습니다. 「올리기」를 누르면 함께 올라갑니다.');
+      })
+      .catch(function (err) { 알림('pmsg', err.message, 'bad'); });
+    e.target.value = '';
+  });
+
+  $('thumbs').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-del]');
+    if (!b) return;
+    사진들.splice(+b.getAttribute('data-del'), 1);
+    사진그리기();
+  });
+
+  /* ── 목록 ── */
+  function 목록그리기() {
+    $('list').innerHTML = 글들.length ? 글들.map(function (n, i) {
+      var 장수 = (n.p && n.p.length) ? n.p.length + '장' : '사진 없음';
+      return '<div class="adm__row">' +
+               '<time>' + 안전(n.d) + '</time>' +
+               '<b>' + 안전(n.t) + '<small>' + 장수 +
+                 (n.b ? ' · ' + 안전(n.b.slice(0, 40)) + (n.b.length > 40 ? '…' : '') : '') +
+               '</small></b>' +
+               '<span style="display:flex;gap:8px">' +
+                 '<button class="btn btn--ghost btn--sm" type="button" data-edit="' + i + '">고치기</button>' +
+                 '<button class="btn btn--ghost btn--sm" type="button" data-del2="' + i + '">삭제</button>' +
+               '</span>' +
+             '</div>';
+    }).join('') : '<p class="adm__msg">아직 올린 소식이 없습니다.</p>';
+  }
+
+  $('list').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+
+    if (b.hasAttribute('data-edit')) {
+      var n = 글들[+b.getAttribute('data-edit')];
+      $('pid').value = n.id; $('pd').value = n.d; $('pt').value = n.t; $('pb').value = n.b || '';
+      사진들 = [];        // 이미 올라간 사진은 그대로 두고, 새로 고른 것만 더한다
+      사진그리기();
+      알림('pmsg', '고치는 중입니다. 사진을 새로 고르면 기존 사진 뒤에 더해집니다.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    if (b.hasAttribute('data-del2')) {
+      var m = 글들[+b.getAttribute('data-del2')];
+      if (!confirm('「' + m.t + '」 글을 지울까요?\n사진도 함께 지워지고 되돌릴 수 없습니다.')) return;
+      알림('pmsg', '지우는 중입니다…');
+      부르기({ action: 'delete', id: m.id })
+        .then(function (j) {
+          if (j && j.ok) { 글들 = j.posts || []; 목록그리기(); 알림('pmsg', '지웠습니다.', 'good'); }
+          else 알림('pmsg', (j && j.error) || '지우지 못했습니다.', 'bad');
+        })
+        .catch(function () { 알림('pmsg', '서버에 연결하지 못했습니다.', 'bad'); });
+    }
+  });
+
+  /* ── 새로 쓰기 ── */
+  function 비우기() {
+    $('pid').value = ''; $('pd').value = 오늘(); $('pt').value = ''; $('pb').value = '';
+    사진들 = []; 사진그리기();
+    알림('pmsg', '');
+  }
+  $('reset').addEventListener('click', 비우기);
+
+  /* ── 저장 ── */
+  $('pf').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var 제목 = $('pt').value.trim();
+    if (!제목) { 알림('pmsg', '제목을 적어 주세요.', 'bad'); $('pt').focus(); return; }
+
+    var 글번호 = $('pid').value || ('p' + Date.now().toString(36));
+    var 막대 = $('bar'), 칸 = 막대.firstElementChild;
+    $('save').disabled = true;
+    막대.hidden = false; 칸.style.width = '0%';
+
+    // 사진을 한 장씩 올린 뒤, 마지막에 글을 저장한다
+    var 경로들 = [];
+    var 차례 = Promise.resolve();
+    사진들.forEach(function (p, i) {
+      차례 = 차례.then(function () {
+        알림('pmsg', '사진 올리는 중… (' + (i + 1) + '/' + 사진들.length + ')');
+        return 부르기({ action: 'photo', postId: 글번호, index: i, image: p.data })
+          .then(function (j) {
+            if (!j || !j.ok) throw new Error((j && j.error) || '사진을 올리지 못했습니다.');
+            경로들.push(j.path);
+            칸.style.width = Math.round(((i + 1) / (사진들.length + 1)) * 100) + '%';
+          });
+      });
+    });
+
+    차례
+      .then(function () {
+        알림('pmsg', '글 저장하는 중…');
+        var 기존 = 글들.filter(function (x) { return x.id === 글번호; })[0];
+        var 모든사진 = ((기존 && 기존.p) ? 기존.p : []).concat(경로들);
+        return 부르기({
+          action: 'save',
+          post: { id: 글번호, d: $('pd').value, t: 제목, b: $('pb').value, p: 모든사진 }
+        });
+      })
+      .then(function (j) {
+        if (!j || !j.ok) throw new Error((j && j.error) || '저장하지 못했습니다.');
+        글들 = j.posts || [];
+        목록그리기();
+        비우기();
+        칸.style.width = '100%';
+        알림('pmsg', '올렸습니다. 홈페이지에는 늦어도 5분 안에 보입니다.', 'good');
+      })
+      .catch(function (err) {
+        알림('pmsg', err.message || '서버에 연결하지 못했습니다.', 'bad');
+      })
+      .then(function () {
+        $('save').disabled = false;
+        setTimeout(function () { 막대.hidden = true; }, 1200);
+      });
+  });
+
+  /* ── 열기 ── */
+  function 열기() {
+    $('login').hidden = true; $('panel').hidden = false; 비우기();
+    부르기({ action: 'list' })
+      .then(function (j) {
+        if (j && j.ok) { 글들 = j.posts || []; 목록그리기(); }
+        else {
+          $('login').hidden = false; $('panel').hidden = true;
+          알림('lmsg', (j && j.error) || '열 수 없습니다.', 'bad');
+          try { sessionStorage.removeItem(비번열쇠); } catch (e) {}
+        }
+      })
+      .catch(function () {
+        $('login').hidden = false; $('panel').hidden = true;
+        알림('lmsg', '서버에 연결하지 못했습니다.', 'bad');
+      });
+  }
+
+  $('login').addEventListener('submit', function (e) {
+    e.preventDefault();
+    비번 = $('pw').value;
+    if (!비번) return;
+    try { sessionStorage.setItem(비번열쇠, 비번); } catch (x) {}
+    알림('lmsg', '확인하는 중…');
+    열기();
+  });
+
+  $('srv-save').addEventListener('click', function () {
+    var v = $('srv').value.trim();
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(v)) {
+      alert('「https://script.google.com/macros/s/.../exec」 꼴의 주소를 넣어 주세요.');
+      return;
+    }
+    서버 = v;
+    try { localStorage.setItem(서버열쇠, v); } catch (e) {}
+    $('setup').hidden = true;
+    $('login').hidden = false;
+    $('pw').focus();
+  });
+
+  /* ── 첫 화면 ── */
+  if (!서버) {
+    $('setup').hidden = false;
+  } else {
+    $('login').hidden = false;
+    if (비번) 열기();
+  }
+})();
+</script>
+</body>
+</html>
