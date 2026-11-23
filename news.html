@@ -213,6 +213,44 @@
     });
   }
 
+  /* 유튜브 주소 → 영상 번호(11자)만 뽑는다. 번호는 글자 종류까지 검사해 엉뚱한 값이 못 들어간다.
+     watch?v= · youtu.be/ · shorts/ · live/ · embed/ 를 알아본다. */
+  var 유튜브 = /https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?[^\s]*?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})[^\s]*/g;
+
+  // 주소만 덩그러니 있는 줄 — 줄째 뺀다 (빈 줄이 남지 않게)
+  var 유튜브줄 = new RegExp('^[ \\t]*(?:' + 유튜브.source + ')[ \\t]*(?:\\n|$)', 'gm');
+
+  function 영상뽑기(본문) {
+    var 영상 = [], 본 = {};
+    function 담기(전체, 번호) {
+      if (!본[번호]) {
+        본[번호] = 1;
+        영상.push({ id: 번호, 세로: /\/shorts\//.test(전체) });
+      }
+      return '';
+    }
+    var 남은글 = String(본문 || '')
+      .replace(유튜브줄, 담기)        // 주소만 있는 줄
+      .replace(유튜브, 담기)          // 글 중간에 섞인 주소
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    // 영상 순서는 글에 나온 순서대로
+    var 순서 = {}, i = 0;
+    String(본문 || '').replace(유튜브, function (x, 번호) { if (!(번호 in 순서)) 순서[번호] = i++; return x; });
+    영상.sort(function (a, b) { return 순서[a.id] - 순서[b.id]; });
+    return { 글: 남은글, 영상: 영상.slice(0, 6) };
+  }
+
+  function 영상틀(v, 제목) {
+    return '<div class="post__yt' + (v.세로 ? ' is-short' : '') + '">' +
+             '<iframe src="https://www.youtube-nocookie.com/embed/' + v.id + '?rel=0" ' +
+               'title="' + 안전(제목) + ' 영상" loading="lazy" ' +
+               'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ' +
+               'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>' +
+           '</div>';
+  }
+
   function 비었음(글) {
     통.innerHTML = '<p class="posts__empty">' + 글 + '</p>';
   }
@@ -232,10 +270,13 @@
           return '<figure data-lb="' + 안전(u) + '" data-cap="' + 안전(n.t) + '">' +
                  '<img src="' + 안전(u) + '" alt="' + 안전(n.t) + ' 공연 사진" loading="lazy"></figure>';
         }).join('');
+        var 뽑음 = 영상뽑기(n.b);
+        var 영상 = 뽑음.영상.map(function (v) { return 영상틀(v, n.t); }).join('');
         return '<article class="post">' +
                  '<p class="post__d">' + 안전(n.d) + '</p>' +
                  '<h2>' + 안전(n.t) + '</h2>' +
-                 (n.b ? '<p class="post__b">' + 안전(n.b) + '</p>' : '') +
+                 (뽑음.글 ? '<p class="post__b">' + 안전(뽑음.글) + '</p>' : '') +
+                 (영상 ? '<div class="post__vids">' + 영상 + '</div>' : '') +
                  (사진 ? '<div class="post__ph">' + 사진 + '</div>' : '') +
                '</article>';
       }).join('');

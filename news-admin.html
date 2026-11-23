@@ -97,7 +97,8 @@
         </div>
         <div class="field">
           <label for="pb">내용</label>
-          <textarea id="pb" rows="7" maxlength="4000" placeholder="공연 이야기를 편하게 적어 주세요. 줄을 바꾸면 그대로 보입니다."></textarea>
+          <textarea id="pb" rows="7" maxlength="4000" placeholder="공연 이야기를 편하게 적어 주세요. 줄을 바꾸면 그대로 보입니다.&#10;유튜브 주소를 붙여넣으면 영상으로 재생됩니다."></textarea>
+          <p class="adm__msg" id="pyt" style="margin-top:8px">유튜브 주소(영상·쇼츠)를 내용에 붙여넣으면 홈페이지에서 바로 재생됩니다.</p>
         </div>
 
         <div class="adm__thumbs" id="thumbs"></div>
@@ -281,6 +282,7 @@
     if (b.hasAttribute('data-edit')) {
       var n = 글들[+b.getAttribute('data-edit')];
       $('pid').value = n.id; $('pd').value = n.d; $('pt').value = n.t; $('pb').value = n.b || '';
+      유튜브세기();
       사진들 = [];        // 이미 올라간 사진은 그대로 두고, 새로 고른 것만 더한다
       사진그리기();
       알림('pmsg', '고치는 중입니다. 사진을 새로 고르면 기존 사진 뒤에 더해집니다.');
@@ -300,11 +302,30 @@
     }
   });
 
+  /* 내용에 들어간 유튜브 주소를 세어 바로 알려 준다 */
+  var 유튜브찾기 = /https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?[^\s]*?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/g;
+  function 유튜브세기() {
+    var 본 = {}, 수 = 0, m;
+    var 글 = $('pb').value;
+    유튜브찾기.lastIndex = 0;
+    while ((m = 유튜브찾기.exec(글))) { if (!본[m[1]]) { 본[m[1]] = 1; 수++; } }
+    var el = $('pyt');
+    if (수) {
+      el.textContent = '유튜브 영상 ' + 수 + '개를 찾았습니다 — 홈페이지에서 플레이어로 보입니다.' + (수 > 6 ? ' (한 글에 6개까지만 보입니다)' : '');
+      el.setAttribute('data-tone', 'good');
+    } else {
+      el.textContent = '유튜브 주소(영상·쇼츠)를 내용에 붙여넣으면 홈페이지에서 바로 재생됩니다.';
+      el.removeAttribute('data-tone');
+    }
+  }
+  $('pb').addEventListener('input', 유튜브세기);
+
   /* ── 새로 쓰기 ── */
   function 비우기() {
     $('pid').value = ''; $('pd').value = 오늘(); $('pt').value = ''; $('pb').value = '';
     사진들 = []; 사진그리기();
     알림('pmsg', '');
+    if (typeof 유튜브세기 === 'function') 유튜브세기();
   }
   $('reset').addEventListener('click', 비우기);
 
